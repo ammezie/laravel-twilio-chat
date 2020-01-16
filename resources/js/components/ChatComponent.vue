@@ -5,21 +5,38 @@
         <div class="card-body">
             <div v-for="message in messages" v-bind:key="message.id">
                 <div
+                    class="mb-1"
                     :class="{ 'text-right': message.author === authUser.email }"
                 >
-                    {{ message.body }}
+                    <template v-if="message.type === 'media'">
+                        <img
+                            class="img-thumbnail"
+                            :src="message.mediaUrl"
+                            :alt="message.filename"
+                            width="150px">
+                    </template>
+                    <template v-else>
+                        {{ message.body }}
+                    </template>
                 </div>
             </div>
         </div>
 
         <div class="card-footer">
-            <input
-                type="text"
-                v-model="newMessage"
-                class="form-control"
-                placeholder="Type your message..."
-                @keyup.enter="sendMessage"
-            />
+            <div class="form-row">
+                <div class="form-group col-md-8">
+                    <input
+                        type="text"
+                        v-model="newMessage"
+                        class="form-control"
+                        placeholder="Type your message..."
+                        @keyup.enter="sendMessage"
+                    />
+                </div>
+                <div class="form-group col-md-4">
+                    <input type="file" accept="image/*" @change="sendMediaMessage">
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -41,7 +58,7 @@ export default {
         return {
             messages: [],
             newMessage: "",
-            channel: ""
+            channel: "",
         };
     },
     async created() {
@@ -71,16 +88,46 @@ export default {
             );
 
             this.channel.on("messageAdded", message => {
-                this.messages.push(message);
+                this.pushToArray(message)
             });
         },
         async fetchMessages() {
-            this.messages = (await this.channel.getMessages()).items;
+            const messages = (await this.channel.getMessages()).items;
+
+            for (const message of messages) {
+                this.pushToArray(message)
+            }
         },
         sendMessage() {
             this.channel.sendMessage(this.newMessage);
 
             this.newMessage = "";
+        },
+        sendMediaMessage({ target }) {
+            const formData = new FormData();
+            formData.append('file', target.files[0]);
+
+            this.channel.sendMessage(formData);
+
+            target.value = "";
+        },
+        async pushToArray (message) {
+            if (message.type === 'media') {
+                const mediaUrl = await message.media.getContentUrl()
+
+                this.messages.push({
+                    type: message.type,
+                    author: message.author,
+                    filename: message.media.filename,
+                    mediaUrl
+                })
+            } else {
+                this.messages.push({
+                    type: message.type,
+                    author: message.author,
+                    body: message.body,
+                })
+            }
         }
     }
 };

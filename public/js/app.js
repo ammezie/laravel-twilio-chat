@@ -1879,6 +1879,23 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: "ChatComponent",
   props: {
@@ -1987,7 +2004,7 @@ __webpack_require__.r(__webpack_exports__);
             case 6:
               this.channel = _context4.sent;
               this.channel.on("messageAdded", function (message) {
-                _this.messages.push(message);
+                _this.pushToArray(message);
               });
 
             case 8:
@@ -1998,6 +2015,8 @@ __webpack_require__.r(__webpack_exports__);
       }, null, this);
     },
     fetchMessages: function fetchMessages() {
+      var messages, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, message;
+
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.async(function fetchMessages$(_context5) {
         while (1) {
           switch (_context5.prev = _context5.next) {
@@ -2006,18 +2025,106 @@ __webpack_require__.r(__webpack_exports__);
               return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.awrap(this.channel.getMessages());
 
             case 2:
-              this.messages = _context5.sent.items;
+              messages = _context5.sent.items;
+              _iteratorNormalCompletion = true;
+              _didIteratorError = false;
+              _iteratorError = undefined;
+              _context5.prev = 6;
 
-            case 3:
+              for (_iterator = messages[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                message = _step.value;
+                this.pushToArray(message);
+              }
+
+              _context5.next = 14;
+              break;
+
+            case 10:
+              _context5.prev = 10;
+              _context5.t0 = _context5["catch"](6);
+              _didIteratorError = true;
+              _iteratorError = _context5.t0;
+
+            case 14:
+              _context5.prev = 14;
+              _context5.prev = 15;
+
+              if (!_iteratorNormalCompletion && _iterator["return"] != null) {
+                _iterator["return"]();
+              }
+
+            case 17:
+              _context5.prev = 17;
+
+              if (!_didIteratorError) {
+                _context5.next = 20;
+                break;
+              }
+
+              throw _iteratorError;
+
+            case 20:
+              return _context5.finish(17);
+
+            case 21:
+              return _context5.finish(14);
+
+            case 22:
             case "end":
               return _context5.stop();
           }
         }
-      }, null, this);
+      }, null, this, [[6, 10, 14, 22], [15,, 17, 21]]);
     },
     sendMessage: function sendMessage() {
       this.channel.sendMessage(this.newMessage);
       this.newMessage = "";
+    },
+    sendMediaMessage: function sendMediaMessage(_ref2) {
+      var target = _ref2.target;
+      var formData = new FormData();
+      formData.append('file', target.files[0]);
+      this.channel.sendMessage(formData);
+      target.value = "";
+    },
+    pushToArray: function pushToArray(message) {
+      var mediaUrl;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.async(function pushToArray$(_context6) {
+        while (1) {
+          switch (_context6.prev = _context6.next) {
+            case 0:
+              if (!(message.type === 'media')) {
+                _context6.next = 7;
+                break;
+              }
+
+              _context6.next = 3;
+              return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.awrap(message.media.getContentUrl());
+
+            case 3:
+              mediaUrl = _context6.sent;
+              this.messages.push({
+                type: message.type,
+                author: message.author,
+                filename: message.media.filename,
+                mediaUrl: mediaUrl
+              });
+              _context6.next = 8;
+              break;
+
+            case 7:
+              this.messages.push({
+                type: message.type,
+                author: message.author,
+                body: message.body
+              });
+
+            case 8:
+            case "end":
+              return _context6.stop();
+          }
+        }
+      }, null, this);
     }
   }
 });
@@ -38079,12 +38186,31 @@ var render = function() {
         return _c("div", { key: message.id }, [
           _c(
             "div",
-            { class: { "text-right": message.author === _vm.authUser.email } },
+            {
+              staticClass: "mb-1",
+              class: { "text-right": message.author === _vm.authUser.email }
+            },
             [
-              _vm._v(
-                "\n                " + _vm._s(message.body) + "\n            "
-              )
-            ]
+              message.type === "media"
+                ? [
+                    _c("img", {
+                      staticClass: "img-thumbnail",
+                      attrs: {
+                        src: message.mediaUrl,
+                        alt: message.filename,
+                        width: "150px"
+                      }
+                    })
+                  ]
+                : [
+                    _vm._v(
+                      "\n                    " +
+                        _vm._s(message.body) +
+                        "\n                "
+                    )
+                  ]
+            ],
+            2
           )
         ])
       }),
@@ -38092,36 +38218,47 @@ var render = function() {
     ),
     _vm._v(" "),
     _c("div", { staticClass: "card-footer" }, [
-      _c("input", {
-        directives: [
-          {
-            name: "model",
-            rawName: "v-model",
-            value: _vm.newMessage,
-            expression: "newMessage"
-          }
-        ],
-        staticClass: "form-control",
-        attrs: { type: "text", placeholder: "Type your message..." },
-        domProps: { value: _vm.newMessage },
-        on: {
-          keyup: function($event) {
-            if (
-              !$event.type.indexOf("key") &&
-              _vm._k($event.keyCode, "enter", 13, $event.key, "Enter")
-            ) {
-              return null
+      _c("div", { staticClass: "form-row" }, [
+        _c("div", { staticClass: "form-group col-md-8" }, [
+          _c("input", {
+            directives: [
+              {
+                name: "model",
+                rawName: "v-model",
+                value: _vm.newMessage,
+                expression: "newMessage"
+              }
+            ],
+            staticClass: "form-control",
+            attrs: { type: "text", placeholder: "Type your message..." },
+            domProps: { value: _vm.newMessage },
+            on: {
+              keyup: function($event) {
+                if (
+                  !$event.type.indexOf("key") &&
+                  _vm._k($event.keyCode, "enter", 13, $event.key, "Enter")
+                ) {
+                  return null
+                }
+                return _vm.sendMessage($event)
+              },
+              input: function($event) {
+                if ($event.target.composing) {
+                  return
+                }
+                _vm.newMessage = $event.target.value
+              }
             }
-            return _vm.sendMessage($event)
-          },
-          input: function($event) {
-            if ($event.target.composing) {
-              return
-            }
-            _vm.newMessage = $event.target.value
-          }
-        }
-      })
+          })
+        ]),
+        _vm._v(" "),
+        _c("div", { staticClass: "form-group col-md-4" }, [
+          _c("input", {
+            attrs: { type: "file", accept: "image/*" },
+            on: { change: _vm.sendMediaMessage }
+          })
+        ])
+      ])
     ])
   ])
 }
@@ -50355,14 +50492,15 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 /*!***************************************************!*\
   !*** ./resources/js/components/ChatComponent.vue ***!
   \***************************************************/
-/*! exports provided: default */
+/*! no static exports found */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ChatComponent_vue_vue_type_template_id_80d584ac___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ChatComponent.vue?vue&type=template&id=80d584ac& */ "./resources/js/components/ChatComponent.vue?vue&type=template&id=80d584ac&");
 /* harmony import */ var _ChatComponent_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ChatComponent.vue?vue&type=script&lang=js& */ "./resources/js/components/ChatComponent.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _ChatComponent_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__) if(__WEBPACK_IMPORT_KEY__ !== 'default') (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _ChatComponent_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
 
 
 
@@ -50392,7 +50530,7 @@ component.options.__file = "resources/js/components/ChatComponent.vue"
 /*!****************************************************************************!*\
   !*** ./resources/js/components/ChatComponent.vue?vue&type=script&lang=js& ***!
   \****************************************************************************/
-/*! exports provided: default */
+/*! no static exports found */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
